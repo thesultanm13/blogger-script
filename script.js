@@ -1,19 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.watchPageData === 'undefined') {
         console.error("CRITICAL: window.watchPageData is not defined after DOM fully loaded.");
-        // Display an error message directly on the page for the user to see.
-        document.body.innerHTML = '<div style="color: #ffcccc; text-align: center; padding: 50px; font-family: sans-serif;"><h1>Configuration Error</h1><p>The necessary video data could not be found in the blog post. Please ensure the post contains the correct data script.</p></div>';
+
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'color: #ffcccc; text-align: center; padding: 50px; font-family: sans-serif;';
+        errorDiv.innerHTML = '<h1>Configuration Error</h1><p>The necessary video data could not be found in the blog post. Please ensure the post contains the correct data script.</p>';
+
+        document.body.prepend(errorDiv); // আগের কনটেন্ট রেখে বার্তা দেখায়
         return;
     }
+});
 
     let pageData;
-    try {
-        pageData = JSON.parse(window.watchPageData);
-    } catch (e) {
-        console.error("CRITICAL: Error parsing JSON data from window.watchPageData.", e);
-        document.body.innerHTML = '<h1 style="color:red; text-align:center; padding-top: 50px;">Error: Invalid JSON string format in the blog post.</h1>';
-        return;
-    }
+try {
+  pageData = JSON.parse(window.watchPageData);
+} catch (e) {
+  console.error('CRITICAL: Error parsing JSON data from window.watchPageData.', e);
+  document.body.innerHTML = '<h1 style=color:red;text-align:center;padding-top:50px;>Error: Invalid JSON string format in the blog post.</h1>';
+  return;
+}
 
     const contentData = pageData.seasons;
     const root = document.getElementById('watch-page-root');
@@ -102,16 +107,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if(serverSelector) serverSelector.addEventListener('change', () => { const server = contentData[currentEpisode.seasonIndex].episodes[currentEpisode.episodeIndex].servers[serverSelector.value]; loadVideo(server, 0); });
     if(closePopupBtn) closePopupBtn.addEventListener('click', closePopup);
     if(popupOverlay) popupOverlay.addEventListener('click', (e) => { if (e.target === popupOverlay) closePopup(); });
-    if(prevEpisodeBtn) prevEpisodeBtn.addEventListener('click', () => scrollCarousel(-1));
-    if(nextEpisodeBtn) nextEpisodeBtn.addEventListener('click', () => scrollCarousel(1));
-    if(episodeListWrapper) episodeListWrapper.addEventListener('scroll', updateCarouselButtons);
-    window.addEventListener('resize', updateCarouselButtons);
-    if(bingeListBtn) bingeListBtn.addEventListener('click', () => { alert('Added to your Binge List!'); const icon = bingeListBtn.querySelector('i'); if(icon) { icon.classList.toggle('fa-plus'); icon.classList.toggle('fa-check'); } });
-    if(whatsappBtn) whatsappBtn.addEventListener('click', () => { const message = `Check out this show: ${pageData.title}. Watch it here: ${window.location.href}`; window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank'); });
-    if(shareBtn) shareBtn.addEventListener('click', () => { if (navigator.share) { navigator.share({ title: pageData.title, text: 'Check out this awesome show!', url: window.location.href, }).catch(console.error); } else { alert('Share functionality is not supported. You can manually copy the link.'); } });
-    if(customPlayer) customPlayer.addEventListener('timeupdate', () => { if (customPlayer.currentTime > 0 && Math.round(customPlayer.currentTime) % 10 === 0 && currentEpisode.seasonIndex !== undefined) saveLastWatched(currentEpisode.seasonIndex, currentEpisode.episodeIndex, customPlayer.currentTime); });
-    
-    loadLastWatched();
-    renderSeasonTabs();
-    renderEpisodes(0);
+    if(prevEpisodeBtn) prevEpisodeBtn.addEventListener('click', function() { scrollCarousel(-1); });
+if(nextEpisodeBtn) nextEpisodeBtn.addEventListener('click', function() { scrollCarousel(1); });
+
+if(episodeListWrapper) episodeListWrapper.addEventListener('scroll', updateCarouselButtons);
+window.addEventListener('resize', updateCarouselButtons);
+
+if(bingeListBtn) bingeListBtn.addEventListener('click', function() {
+  alert('Added to your Binge List!');
+  var icon = bingeListBtn.querySelector('i');
+  if(icon) {
+    icon.classList.toggle('fa-plus');
+    icon.classList.toggle('fa-check');
+  }
 });
+
+if(whatsappBtn) whatsappBtn.addEventListener('click', function() {
+  var message = 'Check out this show: ' + pageData.title + '. Watch it here: ' + window.location.href;
+  window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(message), '_blank');
+});
+
+if(shareBtn) shareBtn.addEventListener('click', function() {
+  if (navigator.share) {
+    navigator.share({
+      title: pageData.title,
+      text: 'Check out this awesome show!',
+      url: window.location.href
+    }).catch(console.error);
+  } else {
+    alert('Share functionality is not supported. You can manually copy the link.');
+  }
+});
+
+if(customPlayer) customPlayer.addEventListener('timeupdate', function() {
+  if (customPlayer.currentTime > 0 && Math.round(customPlayer.currentTime) % 10 === 0 && currentEpisode.seasonIndex !== undefined) {
+    saveLastWatched(currentEpisode.seasonIndex, currentEpisode.episodeIndex, customPlayer.currentTime);
+  }
+});
+
+loadLastWatched();
+renderSeasonTabs();
+renderEpisodes(0);
