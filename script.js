@@ -1,8 +1,11 @@
-(function() {
+document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.watchPageData === 'undefined') {
-        console.error("CRITICAL: window.watchPageData is not defined.");
+        console.error("CRITICAL: window.watchPageData is not defined after DOM fully loaded.");
+        // Display an error message directly on the page for the user to see.
+        document.body.innerHTML = '<div style="color: #ffcccc; text-align: center; padding: 50px; font-family: sans-serif;"><h1>Configuration Error</h1><p>The necessary video data could not be found in the blog post. Please ensure the post contains the correct data script.</p></div>';
         return;
     }
+
     let pageData;
     try {
         pageData = JSON.parse(window.watchPageData);
@@ -11,8 +14,10 @@
         document.body.innerHTML = '<h1 style="color:red; text-align:center; padding-top: 50px;">Error: Invalid JSON string format in the blog post.</h1>';
         return;
     }
+
     const contentData = pageData.seasons;
     const root = document.getElementById('watch-page-root');
+
     function renderPageStructure() {
         const pageHTML = `
             <div class="watch-page-container">
@@ -71,7 +76,9 @@
         `;
         root.innerHTML = pageHTML;
     }
+
     renderPageStructure();
+    
     const getEl = (id) => document.getElementById(id);
     const watchNowBtn = getEl('watchNowBtn'), watchNowText = getEl('watchNowText'), bingeListBtn = getEl('bingeListBtn'), whatsappBtn = getEl('whatsappBtn'), shareBtn = getEl('shareBtn'), seasonTabsContainer = getEl('seasonTabs'), episodeListContainer = getEl('episodeList'), popupOverlay = getEl('videoPopupOverlay'), closePopupBtn = getEl('closePopupBtn'), popupTitle = getEl('popupTitle'), serverSelector = getEl('serverSelector'), videoLoader = getEl('videoLoader'), customPlayer = getEl('customPlayer'), iframePlayer = getEl('iframePlayer'), prevEpisodeBtn = getEl('prevEpisodeBtn'), nextEpisodeBtn = getEl('nextEpisodeBtn');
     const episodeListWrapper = document.querySelector('.episode-list-wrapper');
@@ -103,7 +110,8 @@
     if(whatsappBtn) whatsappBtn.addEventListener('click', () => { const message = `Check out this show: ${pageData.title}. Watch it here: ${window.location.href}`; window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank'); });
     if(shareBtn) shareBtn.addEventListener('click', () => { if (navigator.share) { navigator.share({ title: pageData.title, text: 'Check out this awesome show!', url: window.location.href, }).catch(console.error); } else { alert('Share functionality is not supported. You can manually copy the link.'); } });
     if(customPlayer) customPlayer.addEventListener('timeupdate', () => { if (customPlayer.currentTime > 0 && Math.round(customPlayer.currentTime) % 10 === 0 && currentEpisode.seasonIndex !== undefined) saveLastWatched(currentEpisode.seasonIndex, currentEpisode.episodeIndex, customPlayer.currentTime); });
+    
     loadLastWatched();
     renderSeasonTabs();
     renderEpisodes(0);
-})();
+});
